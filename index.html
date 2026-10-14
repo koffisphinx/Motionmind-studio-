@@ -39,7 +39,7 @@ function activeVideoAt(t){
 }
 function requestActiveVideoPlay(){
   const video=$('stage').querySelector('video');
-  if(!isTimelinePlaying||!video||video.paused||video.readyState<2)return;
+  if(!isTimelinePlaying||!video||!video.paused||video.readyState<2)return;
   video.play().catch(()=>{ $('previewStatus').textContent='Playback could not start. Tap Play again.'; });
 }
 function seekTimeline(timelineTime){
