@@ -131,6 +131,7 @@ function timelineTick(timestamp){
   const active=activeVideoAt(currentTimelineTime);
   if(!active){
     if(currentActiveVideoClipId!==null){
+      seekRequestToken++; // invalidate metadata callbacks from the clip we are leaving
       clearStageMedia();
       currentActiveVideoClipId=null;
       $('previewStatus').textContent='Timeline gap · '+formatTimelineTime(currentTimelineTime);
