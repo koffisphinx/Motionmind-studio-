@@ -144,8 +144,88 @@
   .mobile-feature-toolbar { display: none !important; }
 }
 
+
+/* --- MotionMind Studio: Step 1 view shells and routing --- */
+.app-view { display: none; }
+.app-view.active { display: block; }
+.editor-view.active { display: contents; }
+.auth-view, .home-view {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 78% 18%, rgba(83,92,190,.22), transparent 38%),
+              radial-gradient(ellipse at 15% 85%, rgba(27,183,198,.12), transparent 35%),
+              var(--bg);
+}
+.auth-view { display: none; align-items: center; justify-content: center; padding: 28px 18px; }
+.auth-view.active { display: flex; }
+.auth-card { width: min(100%, 490px); position: relative; z-index: 1; padding: clamp(24px, 5vw, 44px); border: 1px solid var(--line); border-radius: 24px; background: rgba(13,18,35,.88); box-shadow: 0 24px 90px rgba(0,0,0,.24); }
+.auth-brand { margin-bottom: 42px; }
+.eyebrow { color: var(--cyan); font-size: 11px; font-weight: 800; letter-spacing: 2px; }
+.auth-card h1, .home-content h1 { font-size: clamp(32px, 6vw, 52px); line-height: 1.06; letter-spacing: -1.7px; margin: 12px 0 18px; }
+.gradient-text { background: linear-gradient(100deg,#68e8ee,#a78bfa); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.auth-copy, .home-copy { color: var(--muted); font-size: 15px; max-width: 390px; line-height: 1.7; }
+.auth-continue { display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; margin-top: 28px; padding: 14px 16px; }
+.auth-note { text-align: center; color: var(--muted); font-size: 11px; margin: 14px 0 0; }
+.auth-orbit { position: absolute; border: 1px solid rgba(105,201,208,.12); border-radius: 50%; pointer-events: none; }
+.orbit-one { width: 360px; height: 360px; right: -190px; top: 8%; }
+.orbit-two { width: 560px; height: 560px; right: -290px; top: -3%; }
+.home-view { padding: 0 0 36px; }
+.home-top { min-height: 68px; padding: 14px clamp(16px,4vw,48px); display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); background: rgba(8,11,22,.65); }
+.demo-chip { font-size: 10px; letter-spacing: 1px; color: var(--cyan); border: 1px solid rgba(105,201,208,.28); padding: 7px 10px; border-radius: 999px; white-space: nowrap; }
+.home-content { width: min(100% - 32px, 1040px); margin: 48px auto 0; }
+.home-content h1 { font-size: clamp(30px,5vw,46px); }
+.home-new-project { margin-top: 18px; padding: 12px 16px; }
+.home-placeholder { margin-top: 32px; min-height: 190px; border: 1px dashed #34405f; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; background: rgba(16,22,41,.5); }
+.placeholder-icon { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 14px; color: var(--cyan); font-size: 22px; }
+.home-placeholder h2 { font-size: 16px; margin: 12px 0 4px; }
+.home-placeholder p { color: var(--muted); margin: 0; font-size: 13px; }
+.subtle-button { background: transparent; border-color: transparent; color: var(--muted); margin-top: 16px; }
+.subtle-button:hover { color: #eef2ff; border-color: var(--line); }
+@media (max-width: 650px) {
+  .auth-view, .home-view { min-height: 100vh; min-height: 100dvh; }
+  .auth-card { border-radius: 20px; }
+  .auth-brand { margin-bottom: 34px; }
+  .home-content { margin-top: 30px; }
+  .editor-view.active { display: contents; }
+}
 </style></head>
 <body>
+
+<!-- MotionMind Studio: top-level view shells (Step 1) -->
+<section id="view-auth" class="app-view auth-view" aria-labelledby="authTitle">
+  <div class="auth-card">
+    <div class="brand auth-brand"><div class="logo">✦</div><div>MotionMind Studio<small>CREATE BEYOND LIMITS</small></div></div>
+    <p class="eyebrow">YOUR CREATIVE WORKSPACE</p>
+    <h1 id="authTitle">Make something<br><span class="gradient-text">worth watching.</span></h1>
+    <p class="auth-copy">A focused space for your next video idea. Start in demo mode while account features are being built.</p>
+    <button class="primary auth-continue" id="demoContinueBtn" type="button">Continue in demo mode <span aria-hidden="true">→</span></button>
+    <p class="auth-note">Demo mode only · No account or password required</p>
+  </div>
+  <div class="auth-orbit orbit-one" aria-hidden="true"></div>
+  <div class="auth-orbit orbit-two" aria-hidden="true"></div>
+</section>
+
+<section id="view-home" class="app-view home-view" aria-labelledby="homeTitle">
+  <header class="home-top">
+    <div class="brand"><div class="logo">✦</div><div>MotionMind Studio<small>CREATE BEYOND LIMITS</small></div></div>
+    <span class="demo-chip">DEMO WORKSPACE</span>
+  </header>
+  <main class="home-content">
+    <p class="eyebrow">YOUR WORKSPACE</p>
+    <h1 id="homeTitle">What are we creating today?</h1>
+    <p class="home-copy">Your project dashboard starts here. Project saving and recent-project management will be added in the next step.</p>
+    <button class="primary home-new-project" id="openEditorBtn" type="button"><span aria-hidden="true">＋</span> Open editor</button>
+    <section class="home-placeholder" aria-label="Projects area">
+      <div class="placeholder-icon" aria-hidden="true">▤</div>
+      <h2>Your projects will live here</h2>
+      <p>This area is ready for new projects and recent edits.</p>
+    </section>
+    <button class="subtle-button" id="backToAuthBtn" type="button">← Back to welcome screen</button>
+  </main>
+</section>
+<div id="view-editor" class="app-view editor-view">
 <header class="top"><div class="brand"><div class="logo">✦</div><div>MotionMind Studio<small>CREATE BEYOND LIMITS</small></div></div><div class="top-actions"><button class="wide" id="newProject">＋ New</button><button class="wide" id="saveProject">Save project</button><button class="primary" id="exportBtn">Export</button></div></header>
 <main class="layout">
 <section class="panel library"><div class="panelhead">Media library <span class="sub" id="mediaCount">0 items</span></div><div class="sidebody"><div class="drop"><div style="font-size:24px">↥</div><strong>Bring your ideas in</strong><div class="sub">Video, audio, or images</div><button id="importBtn" style="margin-top:12px">＋ Import media</button><input id="fileInput" type="file" accept="video/*,audio/*,image/*" multiple hidden></div><div class="media-list" id="mediaList"><div class="sub">Your imported files will appear here.</div></div></div></section>
@@ -159,6 +239,7 @@
   <button class="mobile-tab active" data-target="center">👁️ Preview</button>
   <button class="mobile-tab" data-target="timelinepanel">⏱️ Timeline</button>
   <button class="mobile-tab" data-target="inspector">⚙️ Tools</button>
+</div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
@@ -340,4 +421,26 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 render();updateTimelineScale();updateTimelineUI(0);
+
+/* --- MotionMind Studio: Step 1 hash router --- */
+(function initMotionMindRouter() {
+  const validRoutes = new Set(['#auth', '#home', '#editor']);
+  function handleRoute() {
+    const requested = window.location.hash || '#auth';
+    if (!validRoutes.has(requested)) {
+      if (window.location.hash !== '#auth') window.location.hash = '#auth';
+      return;
+    }
+    document.querySelectorAll('.app-view').forEach(view => {
+      view.classList.toggle('active', view.id === 'view-' + requested.slice(1));
+    });
+    document.body.dataset.route = requested.slice(1);
+  }
+  document.getElementById('demoContinueBtn')?.addEventListener('click', () => { window.location.hash = '#home'; });
+  document.getElementById('openEditorBtn')?.addEventListener('click', () => { window.location.hash = '#editor'; });
+  document.getElementById('backToAuthBtn')?.addEventListener('click', () => { window.location.hash = '#auth'; });
+  window.addEventListener('hashchange', handleRoute);
+  if (!window.location.hash) window.location.hash = '#auth';
+  else handleRoute();
+})();
 </script></body></html>
