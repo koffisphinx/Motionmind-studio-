@@ -64,6 +64,86 @@
   }
 }
 
+
+/* --- MotionMind Studio: Iteration #2 Mobile Workspace Overrides --- */
+@media (max-width: 650px) {
+  body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    margin: 0;
+    box-sizing: border-box;
+  }
+  .top { flex-shrink: 0; }
+  .layout {
+    flex: 1 1 0%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .mobile-feature-toolbar {
+    display: flex;
+    background: var(--pro-bg-surface, #12141a);
+    border-top: 1px solid var(--pro-border, #232733);
+    flex-shrink: 0;
+    justify-content: space-around;
+    padding: 8px 4px;
+    z-index: 1000;
+  }
+  .mobile-tab {
+    background: transparent;
+    color: #94a3b8;
+    border: none;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 0;
+  }
+  .mobile-tab.active {
+    background: rgba(105, 201, 208, 0.15);
+    color: var(--pro-cyan, #69C9D0);
+  }
+  .layout > .library,
+  .layout > .center,
+  .layout > .timelinepanel,
+  .layout > .inspector { display: none !important; }
+  .layout > .library.mobile-active,
+  .layout > .center.mobile-active,
+  .layout > .timelinepanel.mobile-active,
+  .layout > .inspector.mobile-active {
+    display: flex !important;
+    flex-direction: column;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    overflow-y: auto !important;
+    box-sizing: border-box;
+  }
+  .timeline-scrubber {
+    min-width: 100% !important;
+    max-width: 100% !important;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .tracks {
+    overflow-x: auto !important;
+    width: 100% !important;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+}
+@media (min-width: 651px) {
+  .mobile-feature-toolbar { display: none !important; }
+}
+
 </style></head>
 <body>
 <header class="top"><div class="brand"><div class="logo">✦</div><div>MotionMind Studio<small>CREATE BEYOND LIMITS</small></div></div><div class="top-actions"><button class="wide" id="newProject">＋ New</button><button class="wide" id="saveProject">Save project</button><button class="primary" id="exportBtn">Export</button></div></header>
@@ -72,7 +152,15 @@
 <section class="center"><div class="panel"><div class="toolbar"><span style="font-weight:750">Preview <span class="sub">/ Canvas</span></span><div style="display:flex;gap:7px"><select id="ratio" aria-label="Aspect ratio" style="background:#090e1c;border:1px solid var(--line);color:inherit;border-radius:8px;padding:7px"><option value="16/9">16:9 Landscape</option><option value="9/16">9:16 Vertical</option><option value="1/1">1:1 Square</option></select><button id="playBtn">▶ Play</button></div></div><div class="stage" id="stage"><div class="empty" id="emptyState"><div class="orb">◉</div><strong style="display:block;color:#eef2ff;margin:8px">Your next idea starts here.</strong><span>Import media or add a text layer.</span></div><div class="overlay" id="textOverlay" hidden></div></div><div class="toolbar"><span class="status" id="previewStatus">Ready for your first clip</span><span class="status">SPACE-TECH WORKSPACE</span></div></div></section>
 <aside class="panel inspector"><div class="panelhead">Inspector <span class="sub">Properties</span></div><div class="sidebody"><div class="sub">TEXT OVERLAY</div><label for="textInput">Your text</label><input id="textInput" placeholder="Type a title..." maxlength="180"><label for="textSize">Text size</label><input id="textSize" type="range" min="14" max="56" value="28"><label for="textColor">Text color</label><input id="textColor" type="color" value="#ffffff"><button class="primary" id="addText">＋ Add text to timeline</button><label for="resolution">Export target</label><select id="resolution"><option>1080p</option><option>720p</option><option>480p</option></select><button id="downloadPlan">Download project data</button><p class="status">Starter build · More editing tools will arrive in later versions.</p></div></aside>
 <section class="panel timelinepanel"><div class="timelinehead"><div><strong>Timeline</strong> <span class="sub">· Arrange your story</span></div><div style="display:flex;gap:7px;flex-wrap:wrap"><button id="splitBtn">Split selected</button><button id="deleteBtn">Delete selected</button><button id="undoBtn">Undo</button></div></div><div class="tracks"><div class="timeline-scrubber" style="min-width:600px;padding:8px 2px 12px;display:flex;align-items:center;gap:12px"><span class="status" id="playheadTime" style="min-width:48px">00:00.0</span><input id="timelineScrubber" type="range" min="0" max="30" step="0.1" value="0" aria-label="Timeline playhead" style="width:100%;accent-color:#5ee7f5"><span class="status" id="timelineDuration">00:30</span></div><div class="ruler"><span>00:00</span><span>00:05</span><span>00:10</span><span>00:15</span><span>00:20</span><span>00:25</span></div><div class="track"><div class="tracklabel">VIDEO / MEDIA</div><div class="lane" id="videoLane"></div></div><div class="track"><div class="tracklabel">TEXT / TITLES</div><div class="lane" id="textLane"></div></div><div class="track"><div class="tracklabel">AUDIO</div><div class="lane" id="audioLane"></div></div><div class="sub">Select a clip to edit it. This starter build creates a project plan; MP4 rendering is not implemented yet.</div></div></section>
-</main><div class="toast" id="toast"></div>
+</main>
+<!-- Iteration #2: Mobile Feature Toolbar (4 Tabs) -->
+<div id="mobileFeatureToolbar" class="mobile-feature-toolbar">
+  <button class="mobile-tab" data-target="library">📁 Media</button>
+  <button class="mobile-tab active" data-target="center">👁️ Preview</button>
+  <button class="mobile-tab" data-target="timelinepanel">⏱️ Timeline</button>
+  <button class="mobile-tab" data-target="inspector">⚙️ Tools</button>
+</div>
+<div class="toast" id="toast"></div>
 <script>
 const $=id=>document.getElementById(id);let media=[],clips=[],selected=null,history=[];let urls=[];const say=m=>{const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display='none',2600)};function snapshot(){history.push(JSON.stringify({clips,selected}));if(history.length>30)history.shift()}function render(){updateTimelineScale();for(const id of ['videoLane','textLane','audioLane'])$(id).innerHTML='';clips.forEach((c,i)=>{const el=document.createElement('button');el.className='clip'+(c.kind==='text'?' textclip':'');el.style.left=(c.start/30*100)+'%';el.style.width=(c.duration/30*100)+'%';el.textContent=c.name;el.title='Select '+c.name;el.style.outline=selected===c.id?'2px solid #fff':'';el.onclick=()=>{selected=c.id;render();if(c.kind==='text')showText(c.text,c.size,c.color);};$(c.kind==='text'?'textLane':c.kind==='audio'?'audioLane':'videoLane').appendChild(el)});$('mediaCount').textContent=media.length+' item'+(media.length===1?'':'s');$('emptyState').hidden=media.length>0||clips.some(c=>c.kind==='text');}function showText(text,size,color){$('textOverlay').hidden=!text;$('textOverlay').textContent=text||'';$('textOverlay').style.fontSize=(size||28)+'px';$('textOverlay').style.color=color||'#fff'}function addMedia(files){for(const f of files){const url=URL.createObjectURL(f);urls.push(url);const item={id:crypto.randomUUID(),name:f.name,type:f.type,size:f.size,url};media.push(item);if(f.type.startsWith('audio/'))clips.push({id:crypto.randomUUID(),kind:'audio',name:f.name,start:0,duration:Math.min(30,Math.max(3,f.size/150000))});else clips.push({id:crypto.randomUUID(),kind:'media',name:f.name,start:0,duration:Math.min(30,Math.max(3,f.duration||8)),mediaId:item.id});}render();const list=$('mediaList');list.innerHTML='';media.forEach(m=>{const row=document.createElement('div');row.className='mediaitem';const th=document.createElement('div');th.className='thumb';th.textContent=m.type.startsWith('video/')?'▶':m.type.startsWith('audio/')?'♫':'▧';const name=document.createElement('div');name.className='filename';name.textContent=m.name;const info=document.createElement('div');info.className='sub';info.textContent=(m.size/1024/1024).toFixed(1)+' MB';const wrap=document.createElement('div');wrap.style.minWidth='0';wrap.append(name,info);row.append(th,wrap);row.onclick=()=>preview(m);list.append(row)});say('Imported '+files.length+' file(s).')}function preview(m){$('previewStatus').textContent=m.name;const stage=$('stage');stage.querySelectorAll('video,img,audio').forEach(e=>e.remove());$('emptyState').hidden=true;if(m.type.startsWith('video/')){const v=document.createElement('video');v.src=m.url;v.className='video';v.controls=true;v.playsInline=true;stage.prepend(v)}else if(m.type.startsWith('image/')){const im=document.createElement('img');im.src=m.url;im.className='video';im.style.objectFit='contain';stage.prepend(im)}else{say('Audio added to timeline.')}const c=clips.find(x=>x.mediaId===m.id);if(c)selected=c.id;render()}$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=e=>{if(e.target.files.length)addMedia(e.target.files);e.target.value=''};$('addText').onclick=()=>{const text=$('textInput').value.trim();if(!text){say('Type some text first.');return}snapshot();const c={id:crypto.randomUUID(),kind:'text',name:text,text,size:+$('textSize').value,color:$('textColor').value,start:0,duration:5};clips.push(c);selected=c.id;showText(text,c.size,c.color);render();say('Text layer added.')} ;$('textSize').oninput=()=>{const c=clips.find(x=>x.id===selected&&x.kind==='text');if(c){c.size=+$('textSize').value;showText(c.text,c.size,c.color)}};$('textColor').oninput=()=>{const c=clips.find(x=>x.id===selected&&x.kind==='text');if(c){c.color=$('textColor').value;showText(c.text,c.size,c.color)}};$('deleteBtn').onclick=()=>{if(!selected){say('Select a timeline clip first.');return}snapshot();const c=clips.find(x=>x.id===selected);clips=clips.filter(x=>x.id!==selected);selected=null;if(c?.kind==='text')showText('');render();say('Clip deleted.')} ;$('splitBtn').onclick=()=>{const c=clips.find(x=>x.id===selected);if(!c){say('Select a clip first.');return}if(c.duration<2){say('Clip is too short to split.');return}snapshot();const half=c.duration/2;const second={...c,id:crypto.randomUUID(),name:c.name+' (part 2)',start:c.start+half,duration:half};c.duration=half;clips.push(second);selected=second.id;render();say('Clip split into two timeline segments.')} ;$('undoBtn').onclick=()=>{const s=history.pop();if(!s){say('Nothing to undo yet.');return}const d=JSON.parse(s);clips=d.clips;selected=d.selected;render();say('Last timeline change undone.')} ;$('ratio').onchange=()=>{$('stage').style.aspectRatio=$('ratio').value};// Play/Pause is wired to the shared project-time clock below. Preview-only library playback remains separate.
 let seekRequestToken=0;
@@ -216,5 +304,40 @@ $('timelineScrubber').addEventListener('input',e=>{
   seekTimeline(targetTime);
   updateTimelineUI(targetTime);
 });
-function project(){return {app:'MotionMind Studio',version:1,createdAt:new Date().toISOString(),aspectRatio:$('ratio').value,resolution:$('resolution').value,clips:clips.map(c=>({...c,trimStart:Number.isFinite(c.trimStart)?c.trimStart:0,trimEnd:Number.isFinite(c.trimEnd)?c.trimEnd:(Number.isFinite(c.trimStart)?c.trimStart:0)+(Number(c.duration)||0)})),media:media.map(({id,name,type,size})=>({id,name,type,size}))}}function download(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}$('saveProject').onclick=$('downloadPlan').onclick=()=>download('motionmind-project.json',JSON.stringify(project(),null,2),'application/json');$('exportBtn').onclick=()=>{download('motionmind-project.json',JSON.stringify(project(),null,2),'application/json');say('Project data exported. MP4 export is planned for a later build.')};$('newProject').onclick=()=>{if(clips.length&&!confirm('Start a new project? Your current timeline will be cleared.'))return;pauseTimelinePlayback();snapshot();clips=[];selected=null;currentTimelineTime=0;currentActiveVideoClipId=null;showText('');$('stage').querySelectorAll('video,img,audio').forEach(e=>e.remove());$('previewStatus').textContent='New project';$('timelineScrubber').value='0';seekTimeline(0);render();say('New timeline ready. Media remains in your library.')};render();updateTimelineScale();updateTimelineUI(0);
+function project(){return {app:'MotionMind Studio',version:1,createdAt:new Date().toISOString(),aspectRatio:$('ratio').value,resolution:$('resolution').value,clips:clips.map(c=>({...c,trimStart:Number.isFinite(c.trimStart)?c.trimStart:0,trimEnd:Number.isFinite(c.trimEnd)?c.trimEnd:(Number.isFinite(c.trimStart)?c.trimStart:0)+(Number(c.duration)||0)})),media:media.map(({id,name,type,size})=>({id,name,type,size}))}}function download(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}$('saveProject').onclick=$('downloadPlan').onclick=()=>download('motionmind-project.json',JSON.stringify(project(),null,2),'application/json');$('exportBtn').onclick=()=>{download('motionmind-project.json',JSON.stringify(project(),null,2),'application/json');say('Project data exported. MP4 export is planned for a later build.')};$('newProject').onclick=()=>{if(clips.length&&!confirm('Start a new project? Your current timeline will be cleared.'))return;pauseTimelinePlayback();snapshot();clips=[];selected=null;currentTimelineTime=0;currentActiveVideoClipId=null;showText('');$('stage').querySelectorAll('video,img,audio').forEach(e=>e.remove());$('previewStatus').textContent='New project';$('timelineScrubber').value='0';seekTimeline(0);render();say('New timeline ready. Media remains in your library.')};
+// --- Iteration #2: Mobile Feature Toolbar Tab Switcher (4 Tabs) ---
+document.addEventListener('DOMContentLoaded', () => {
+  const mobileTabs = document.querySelectorAll('.mobile-tab');
+  if (!mobileTabs.length) return;
+
+  function switchMobileTab(targetClassName) {
+    mobileTabs.forEach(tab => {
+      tab.classList.toggle('active', tab.getAttribute('data-target') === targetClassName);
+    });
+    ['library', 'center', 'timelinepanel', 'inspector'].forEach(cls => {
+      const panel = document.querySelector('.' + cls);
+      if (!panel) return;
+      panel.classList.toggle('mobile-active', cls === targetClassName);
+    });
+  }
+
+  mobileTabs.forEach(tab => {
+    tab.addEventListener('click', event => {
+      switchMobileTab(event.currentTarget.getAttribute('data-target'));
+    });
+  });
+
+  if (window.innerWidth <= 650) switchMobileTab('center');
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 650) {
+      document.querySelectorAll('.library, .center, .timelinepanel, .inspector')
+        .forEach(panel => panel.classList.remove('mobile-active'));
+    } else if (!document.querySelector('.library.mobile-active, .center.mobile-active, .timelinepanel.mobile-active, .inspector.mobile-active')) {
+      switchMobileTab('center');
+    }
+  });
+});
+
+render();updateTimelineScale();updateTimelineUI(0);
 </script></body></html>
