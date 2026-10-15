@@ -215,13 +215,11 @@
   <main class="home-content">
     <p class="eyebrow">YOUR WORKSPACE</p>
     <h1 id="homeTitle">What are we creating today?</h1>
-    <p class="home-copy">Your project dashboard starts here. Project saving and recent-project management will be added in the next step.</p>
-    <button class="primary home-new-project" id="openEditorBtn" type="button"><span aria-hidden="true">＋</span> Open editor</button>
-    <section class="home-placeholder" aria-label="Projects area">
-      <div class="placeholder-icon" aria-hidden="true">▤</div>
-      <h2>Your projects will live here</h2>
-      <p>This area is ready for new projects and recent edits.</p>
-    </section>
+    <p class="home-copy">Create a project and pick up where you left off. Projects are saved in this browser on this device.</p>
+    <button class="primary home-new-project" id="createProjectBtn" type="button"><span aria-hidden="true">＋</span> New project</button>
+    <div class="projects-heading"><h2>Recent projects</h2><span class="sub" id="projectCount">0 projects</span></div>
+    <section id="projectList" class="project-grid" aria-label="Recent projects"></section>
+    <div id="projectEmpty" class="project-empty">No saved projects yet. Create your first project to get started.</div>
     <button class="subtle-button" id="backToAuthBtn" type="button">← Back to welcome screen</button>
   </main>
 </section>
@@ -243,7 +241,7 @@
 </div>
 <div class="toast" id="toast"></div>
 <script>
-const $=id=>document.getElementById(id);let media=[],clips=[],selected=null,history=[];let urls=[];const say=m=>{const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display='none',2600)};function snapshot(){history.push(JSON.stringify({clips,selected}));if(history.length>30)history.shift()}
+const $=id=>document.getElementById(id);let media=[],clips=[],selected=null,history=[];let urls=[];let currentProjectId=null,currentProjectName="Untitled project";const PROJECTS_KEY="motionmind.projects.v1";const say=m=>{const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display='none',2600)};function snapshot(){history.push(JSON.stringify({clips,selected}));if(history.length>30)history.shift()}
 function readSavedProjects(){try{const value=JSON.parse(localStorage.getItem(PROJECTS_KEY)||"[]");return Array.isArray(value)?value:[]}catch(_){return[]}}
 function writeSavedProjects(items){try{localStorage.setItem(PROJECTS_KEY,JSON.stringify(items));return true}catch(_){say("Browser storage is full or unavailable. Download a project backup.");return false}}
 function renderProjects(){
