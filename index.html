@@ -243,7 +243,79 @@
 </div>
 <div class="toast" id="toast"></div>
 <script>
-const $=id=>document.getElementById(id);let media=[],clips=[],selected=null,history=[];let urls=[];const say=m=>{const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display='none',2600)};function snapshot(){history.push(JSON.stringify({clips,selected}));if(history.length>30)history.shift()}function render(){updateTimelineScale();for(const id of ['videoLane','textLane','audioLane'])$(id).innerHTML='';clips.forEach((c,i)=>{const el=document.createElement('button');el.className='clip'+(c.kind==='text'?' textclip':'');el.style.left=(c.start/30*100)+'%';el.style.width=(c.duration/30*100)+'%';el.textContent=c.name;el.title='Select '+c.name;el.style.outline=selected===c.id?'2px solid #fff':'';el.onclick=()=>{selected=c.id;render();if(c.kind==='text')showText(c.text,c.size,c.color);};$(c.kind==='text'?'textLane':c.kind==='audio'?'audioLane':'videoLane').appendChild(el)});$('mediaCount').textContent=media.length+' item'+(media.length===1?'':'s');$('emptyState').hidden=media.length>0||clips.some(c=>c.kind==='text');}function showText(text,size,color){$('textOverlay').hidden=!text;$('textOverlay').textContent=text||'';$('textOverlay').style.fontSize=(size||28)+'px';$('textOverlay').style.color=color||'#fff'}function addMedia(files){for(const f of files){const url=URL.createObjectURL(f);urls.push(url);const item={id:crypto.randomUUID(),name:f.name,type:f.type,size:f.size,url};media.push(item);if(f.type.startsWith('audio/'))clips.push({id:crypto.randomUUID(),kind:'audio',name:f.name,start:0,duration:Math.min(30,Math.max(3,f.size/150000))});else clips.push({id:crypto.randomUUID(),kind:'media',name:f.name,start:0,duration:Math.min(30,Math.max(3,f.duration||8)),mediaId:item.id});}render();const list=$('mediaList');list.innerHTML='';media.forEach(m=>{const row=document.createElement('div');row.className='mediaitem';const th=document.createElement('div');th.className='thumb';th.textContent=m.type.startsWith('video/')?'▶':m.type.startsWith('audio/')?'♫':'▧';const name=document.createElement('div');name.className='filename';name.textContent=m.name;const info=document.createElement('div');info.className='sub';info.textContent=(m.size/1024/1024).toFixed(1)+' MB';const wrap=document.createElement('div');wrap.style.minWidth='0';wrap.append(name,info);row.append(th,wrap);row.onclick=()=>preview(m);list.append(row)});say('Imported '+files.length+' file(s).')}function preview(m){$('previewStatus').textContent=m.name;const stage=$('stage');stage.querySelectorAll('video,img,audio').forEach(e=>e.remove());$('emptyState').hidden=true;if(m.type.startsWith('video/')){const v=document.createElement('video');v.src=m.url;v.className='video';v.controls=true;v.playsInline=true;stage.prepend(v)}else if(m.type.startsWith('image/')){const im=document.createElement('img');im.src=m.url;im.className='video';im.style.objectFit='contain';stage.prepend(im)}else{say('Audio added to timeline.')}const c=clips.find(x=>x.mediaId===m.id);if(c)selected=c.id;render()}$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=e=>{if(e.target.files.length)addMedia(e.target.files);e.target.value=''};$('addText').onclick=()=>{const text=$('textInput').value.trim();if(!text){say('Type some text first.');return}snapshot();const c={id:crypto.randomUUID(),kind:'text',name:text,text,size:+$('textSize').value,color:$('textColor').value,start:0,duration:5};clips.push(c);selected=c.id;showText(text,c.size,c.color);render();say('Text layer added.')} ;$('textSize').oninput=()=>{const c=clips.find(x=>x.id===selected&&x.kind==='text');if(c){c.size=+$('textSize').value;showText(c.text,c.size,c.color)}};$('textColor').oninput=()=>{const c=clips.find(x=>x.id===selected&&x.kind==='text');if(c){c.color=$('textColor').value;showText(c.text,c.size,c.color)}};$('deleteBtn').onclick=()=>{if(!selected){say('Select a timeline clip first.');return}snapshot();const c=clips.find(x=>x.id===selected);clips=clips.filter(x=>x.id!==selected);selected=null;if(c?.kind==='text')showText('');render();say('Clip deleted.')} ;$('splitBtn').onclick=()=>{const c=clips.find(x=>x.id===selected);if(!c){say('Select a clip first.');return}if(c.duration<2){say('Clip is too short to split.');return}snapshot();const half=c.duration/2;const second={...c,id:crypto.randomUUID(),name:c.name+' (part 2)',start:c.start+half,duration:half};c.duration=half;clips.push(second);selected=second.id;render();say('Clip split into two timeline segments.')} ;$('undoBtn').onclick=()=>{const s=history.pop();if(!s){say('Nothing to undo yet.');return}const d=JSON.parse(s);clips=d.clips;selected=d.selected;render();say('Last timeline change undone.')} ;$('ratio').onchange=()=>{$('stage').style.aspectRatio=$('ratio').value};// Play/Pause is wired to the shared project-time clock below. Preview-only library playback remains separate.
+const $=id=>document.getElementById(id);let media=[],clips=[],selected=null,history=[];let urls=[];const say=m=>{const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display='none',2600)};function snapshot(){history.push(JSON.stringify({clips,selected}));if(history.length>30)history.shift()}
+function readSavedProjects(){try{const value=JSON.parse(localStorage.getItem(PROJECTS_KEY)||"[]");return Array.isArray(value)?value:[]}catch(_){return[]}}
+function writeSavedProjects(items){try{localStorage.setItem(PROJECTS_KEY,JSON.stringify(items));return true}catch(_){say("Browser storage is full or unavailable. Download a project backup.");return false}}
+function renderProjects(){
+  const list=$("projectList"),empty=$("projectEmpty");if(!list||!empty)return;
+  const items=readSavedProjects().sort((a,b)=>(Date.parse(b.updatedAt)||0)-(Date.parse(a.updatedAt)||0));
+  list.replaceChildren();$("projectCount").textContent=items.length+" project"+(items.length===1?"":"s");empty.hidden=items.length>0;
+  items.forEach(item=>{
+    const card=document.createElement("article");card.className="project-card";
+    const top=document.createElement("div");top.className="project-card-top";
+    const icon=document.createElement("div");icon.className="project-card-icon";icon.textContent="✦";
+    const info=document.createElement("div");info.style.minWidth="0";
+    const title=document.createElement("h3");title.textContent=item.name||"Untitled project";
+    const meta=document.createElement("p");meta.textContent=(item.data?.clips?.length||0)+" timeline clips · "+(item.updatedAt?new Date(item.updatedAt).toLocaleDateString():"Saved locally");
+    info.append(title,meta);top.append(icon,info);
+    const actions=document.createElement("div");actions.className="project-card-actions";
+    const open=document.createElement("button");open.className="primary";open.type="button";open.textContent="Open";open.onclick=()=>openSavedProject(item.id);
+    const remove=document.createElement("button");remove.type="button";remove.textContent="Delete";remove.onclick=()=>{if(!confirm('Delete "'+(item.name||"Untitled project")+'" from this browser?'))return;writeSavedProjects(readSavedProjects().filter(p=>p.id!==item.id));if(currentProjectId===item.id){currentProjectId=null;currentProjectName="Untitled project"}renderProjects();say("Project deleted from this browser.")};
+    actions.append(open,remove);card.append(top,actions);list.append(card);
+  });
+}
+function persistCurrentProject(){
+  if(!currentProjectId)return;
+  try{
+    const now=new Date().toISOString(),data=project();
+    const items=readSavedProjects().filter(p=>p.id!==currentProjectId);
+    items.unshift({id:currentProjectId,name:currentProjectName,updatedAt:now,data});
+    if(writeSavedProjects(items))renderProjects();
+  }catch(_){}
+}
+function renderMediaList(){
+  const list=$("mediaList");if(!list)return;list.replaceChildren();
+  if(!media.length){const note=document.createElement("div");note.className="sub";note.textContent="Your imported files will appear here.";list.append(note);return}
+  media.forEach(m=>{
+    const row=document.createElement("div");row.className="mediaitem";
+    const th=document.createElement("div");th.className="thumb";th.textContent=m.type?.startsWith("video/")?"▶":m.type?.startsWith("audio/")?"♫":"▧";
+    const name=document.createElement("div");name.className="filename";name.textContent=m.name;
+    const info=document.createElement("div");info.className="sub";info.textContent=m.missing?"Source file needed · re-import to relink":(m.size/1024/1024).toFixed(1)+" MB";
+    const wrap=document.createElement("div");wrap.style.minWidth="0";wrap.append(name,info);row.append(th,wrap);row.onclick=()=>preview(m);list.append(row);
+  });
+}
+function openSavedProject(id){
+  const saved=readSavedProjects().find(p=>p.id===id);if(!saved?.data){say("That saved project could not be opened.");return}
+  pauseTimelinePlayback();currentProjectId=saved.id;currentProjectName=saved.name||"Untitled project";
+  const data=saved.data;clips=Array.isArray(data.clips)?data.clips.map(c=>({...c})):[];media=Array.isArray(data.media)?data.media.map(m=>({...m,url:null,missing:true})):[];
+  selected=null;history=[];currentTimelineTime=0;currentActiveVideoClipId=null;
+  clearStageMedia();showText("");$("emptyState").hidden=media.length>0||clips.some(c=>c.kind==="text");
+  if(data.aspectRatio)$("ratio").value=data.aspectRatio;if(data.resolution)$("resolution").value=data.resolution;
+  $("stage").style.aspectRatio=$("ratio").value;$("previewStatus").textContent=media.length?"Project opened · re-import source files to preview":"Project opened";
+  renderMediaList();render();updateTimelineUI(0);window.location.hash="#editor";
+  say(media.length?"Project opened. Re-import the original files to reconnect previews.":"Project opened.");
+}
+function createNewProject(){
+  const entered=prompt("Name your project","Untitled project");if(entered===null)return;
+  if(clips.length&&!confirm("Start a new project? Your current project will be saved, then the timeline will be cleared."))return;
+  persistCurrentProject();pauseTimelinePlayback();currentProjectId=crypto.randomUUID();currentProjectName=entered.trim()||"Untitled project";
+  clips=[];selected=null;history=[];currentTimelineTime=0;currentActiveVideoClipId=null;showText("");clearStageMedia();
+  $("previewStatus").textContent="New project · "+currentProjectName;$("timelineScrubber").value="0";
+  render();renderMediaList();updateTimelineUI(0);window.location.hash="#editor";say("New project created.");
+}
+function render(){updateTimelineScale();for(const id of ['videoLane','textLane','audioLane'])$(id).innerHTML='';clips.forEach((c,i)=>{const el=document.createElement('button');el.className='clip'+(c.kind==='text'?' textclip':'');el.style.left=(c.start/30*100)+'%';el.style.width=(c.duration/30*100)+'%';el.textContent=c.name;el.title='Select '+c.name;el.style.outline=selected===c.id?'2px solid #fff':'';el.onclick=()=>{selected=c.id;render();if(c.kind==='text')showText(c.text,c.size,c.color);};$(c.kind==='text'?'textLane':c.kind==='audio'?'audioLane':'videoLane').appendChild(el)});$('mediaCount').textContent=media.length+' item'+(media.length===1?'':'s');$('emptyState').hidden=media.length>0||clips.some(c=>c.kind==='text');if(currentProjectId)persistCurrentProject();}function showText(text,size,color){$('textOverlay').hidden=!text;$('textOverlay').textContent=text||'';$('textOverlay').style.fontSize=(size||28)+'px';$('textOverlay').style.color=color||'#fff'}function addMedia(files){
+  for(const f of files){
+    const url=URL.createObjectURL(f);urls.push(url);
+    let item=media.find(m=>m.missing&&m.name===f.name&&m.size===f.size);
+    if(item){item.url=url;item.type=f.type;item.missing=false}
+    else{
+      item={id:crypto.randomUUID(),name:f.name,type:f.type,size:f.size,url,missing:false};media.push(item);
+      if(f.type.startsWith('audio/'))clips.push({id:crypto.randomUUID(),kind:'audio',name:f.name,start:0,duration:Math.min(30,Math.max(3,f.size/150000))});
+      else clips.push({id:crypto.randomUUID(),kind:'media',name:f.name,start:0,duration:Math.min(30,Math.max(3,f.duration||8)),mediaId:item.id});
+    }
+  }
+  renderMediaList();render();say("Imported "+files.length+" file(s).");
+}function preview(m){if(!m.url){say("Re-import this source file to preview it.");return}$('previewStatus').textContent=m.name;const stage=$('stage');stage.querySelectorAll('video,img,audio').forEach(e=>e.remove());$('emptyState').hidden=true;if(m.type.startsWith('video/')){const v=document.createElement('video');v.src=m.url;v.className='video';v.controls=true;v.playsInline=true;stage.prepend(v)}else if(m.type.startsWith('image/')){const im=document.createElement('img');im.src=m.url;im.className='video';im.style.objectFit='contain';stage.prepend(im)}else{say('Audio added to timeline.')}const c=clips.find(x=>x.mediaId===m.id);if(c)selected=c.id;render()}$('importBtn').onclick=()=>$('fileInput').click();$('fileInput').onchange=e=>{if(e.target.files.length)addMedia(e.target.files);e.target.value=''};$('addText').onclick=()=>{const text=$('textInput').value.trim();if(!text){say('Type some text first.');return}snapshot();const c={id:crypto.randomUUID(),kind:'text',name:text,text,size:+$('textSize').value,color:$('textColor').value,start:0,duration:5};clips.push(c);selected=c.id;showText(text,c.size,c.color);render();say('Text layer added.')} ;$('textSize').oninput=()=>{const c=clips.find(x=>x.id===selected&&x.kind==='text');if(c){c.size=+$('textSize').value;showText(c.text,c.size,c.color)}};$('textColor').oninput=()=>{const c=clips.find(x=>x.id===selected&&x.kind==='text');if(c){c.color=$('textColor').value;showText(c.text,c.size,c.color)}};$('deleteBtn').onclick=()=>{if(!selected){say('Select a timeline clip first.');return}snapshot();const c=clips.find(x=>x.id===selected);clips=clips.filter(x=>x.id!==selected);selected=null;if(c?.kind==='text')showText('');render();say('Clip deleted.')} ;$('splitBtn').onclick=()=>{const c=clips.find(x=>x.id===selected);if(!c){say('Select a clip first.');return}if(c.duration<2){say('Clip is too short to split.');return}snapshot();const half=c.duration/2;const second={...c,id:crypto.randomUUID(),name:c.name+' (part 2)',start:c.start+half,duration:half};c.duration=half;clips.push(second);selected=second.id;render();say('Clip split into two timeline segments.')} ;$('undoBtn').onclick=()=>{const s=history.pop();if(!s){say('Nothing to undo yet.');return}const d=JSON.parse(s);clips=d.clips;selected=d.selected;render();say('Last timeline change undone.')} ;$('ratio').onchange=()=>{$('stage').style.aspectRatio=$('ratio').value};// Play/Pause is wired to the shared project-time clock below. Preview-only library playback remains separate.
 let seekRequestToken=0;
 let currentTimelineTime=0;
 let isTimelinePlaying=false;
@@ -385,7 +457,7 @@ $('timelineScrubber').addEventListener('input',e=>{
   seekTimeline(targetTime);
   updateTimelineUI(targetTime);
 });
-function project(){return {app:'MotionMind Studio',version:1,createdAt:new Date().toISOString(),aspectRatio:$('ratio').value,resolution:$('resolution').value,clips:clips.map(c=>({...c,trimStart:Number.isFinite(c.trimStart)?c.trimStart:0,trimEnd:Number.isFinite(c.trimEnd)?c.trimEnd:(Number.isFinite(c.trimStart)?c.trimStart:0)+(Number(c.duration)||0)})),media:media.map(({id,name,type,size})=>({id,name,type,size}))}}function download(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}$('saveProject').onclick=$('downloadPlan').onclick=()=>download('motionmind-project.json',JSON.stringify(project(),null,2),'application/json');$('exportBtn').onclick=()=>{download('motionmind-project.json',JSON.stringify(project(),null,2),'application/json');say('Project data exported. MP4 export is planned for a later build.')};$('newProject').onclick=()=>{if(clips.length&&!confirm('Start a new project? Your current timeline will be cleared.'))return;pauseTimelinePlayback();snapshot();clips=[];selected=null;currentTimelineTime=0;currentActiveVideoClipId=null;showText('');$('stage').querySelectorAll('video,img,audio').forEach(e=>e.remove());$('previewStatus').textContent='New project';$('timelineScrubber').value='0';seekTimeline(0);render();say('New timeline ready. Media remains in your library.')};
+function project(){return {app:'MotionMind Studio',version:1,projectId:currentProjectId,name:currentProjectName,createdAt:new Date().toISOString(),aspectRatio:$('ratio').value,resolution:$('resolution').value,clips:clips.map(c=>({...c,trimStart:Number.isFinite(c.trimStart)?c.trimStart:0,trimEnd:Number.isFinite(c.trimEnd)?c.trimEnd:(Number.isFinite(c.trimStart)?c.trimStart:0)+(Number(c.duration)||0)})),media:media.map(({id,name,type,size})=>({id,name,type,size}))}}function download(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}$('saveProject').onclick=()=>{persistCurrentProject();download((currentProjectName||"motionmind-project").replace(/[^a-z0-9-_]+/gi,"-").toLowerCase()+".json",JSON.stringify(project(),null,2),"application/json");say("Project saved in this browser and downloaded as backup.")};$('downloadPlan').onclick=()=>download("motionmind-project.json",JSON.stringify(project(),null,2),"application/json");$('exportBtn').onclick=()=>{download('motionmind-project.json',JSON.stringify(project(),null,2),'application/json');say('Project data exported. MP4 export is planned for a later build.')};$('newProject').onclick=createNewProject;
 // --- Iteration #2: Mobile Feature Toolbar Tab Switcher (4 Tabs) ---
 document.addEventListener('DOMContentLoaded', () => {
   const mobileTabs = document.querySelectorAll('.mobile-tab');
@@ -420,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-render();updateTimelineScale();updateTimelineUI(0);
+render();renderProjects();renderMediaList();updateTimelineScale();updateTimelineUI(0);
 
 /* --- MotionMind Studio: Step 1 hash router --- */
 (function initMotionMindRouter() {
@@ -437,7 +509,8 @@ render();updateTimelineScale();updateTimelineUI(0);
     document.body.dataset.route = requested.slice(1);
   }
   document.getElementById('demoContinueBtn')?.addEventListener('click', () => { window.location.hash = '#home'; });
-  document.getElementById('openEditorBtn')?.addEventListener('click', () => { window.location.hash = '#editor'; });
+  document.getElementById('createProjectBtn')?.addEventListener('click', createNewProject);
+  window.addEventListener('hashchange', () => { if(window.location.hash==="#home")renderProjects(); });
   document.getElementById('backToAuthBtn')?.addEventListener('click', () => { window.location.hash = '#auth'; });
   window.addEventListener('hashchange', handleRoute);
   if (!window.location.hash) window.location.hash = '#auth';
